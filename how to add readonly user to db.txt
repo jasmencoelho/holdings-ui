@@ -1,0 +1,80 @@
+
+## 🧩 Create a Read-Only Role in pgAdmin
+
+### ✅ 1. Open pgAdmin and connect to your server
+
+- Open **pgAdmin**
+- Navigate to your **PostgreSQL server** in the sidebar
+- Expand **Login/Group Roles**
+
+---
+
+### ✅ 2. Create a New Login Role
+
+1. Right-click **Login/Group Roles** → **Create** → **Login/Group Role**
+2. In the **General** tab:
+   - Name: `readonly_user`
+
+3. In the **Definition** tab:
+   - Set the **password** for the user (this is what your app will use)
+
+4. In the **Privileges** tab:
+   - Make sure **Can login?** is checked
+   - Leave everything else unchecked (no create/role/superuser privileges)
+
+5. Click **Save**
+
+---
+
+### ✅ 3. Grant Connection + Usage Privileges
+
+Now that the user exists, you need to:
+
+#### Step A: Grant access to the database
+
+- Expand **Databases → your_database**
+- Right-click → **Query Tool**
+- Run:
+
+```sql
+GRANT CONNECT ON DATABASE your_database TO readonly_user;
+```
+
+#### Step B: Grant usage on the schema (usually `public`)
+
+```sql
+GRANT USAGE ON SCHEMA public TO readonly_user;
+```
+
+---
+
+### ✅ 4. Grant `SELECT` on Specific Tables
+
+In the **Query Tool**, run:
+
+```sql
+GRANT SELECT ON d, c, e TO readonly_user;
+```
+
+---
+
+### ✅ 5. (Optional) Grant Default SELECT for New Tables
+
+If you want any new tables in `public` to be readable by this user:
+
+```sql
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+GRANT SELECT ON TABLES TO readonly_user;
+```
+
+---
+
+### ✅ 6. Test the Connection (Optional)
+
+Use pgAdmin or `psql` to connect as `readonly_user` and run:
+
+```sql
+SELECT * FROM d LIMIT 1;
+```
+
+It should work — and attempts to write (`INSERT`, `UPDATE`, `DELETE`) will fail.
